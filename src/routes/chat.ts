@@ -12,8 +12,10 @@ router.post("/", async (req, res) => {
   const api = new BingChat({
     cookie: process.env.BING_COOKIE,
   });
-  const response = await api.sendMessage(message);
-  res.send(response.text);
+  const response = await api.sendMessage(message, {
+    onProgress: (partialResponse) => res.write(partialResponse),
+  });
+  res.end(response);
 });
 
 export default router;
