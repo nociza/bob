@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
     "esModuleInterop": true,
-    "noImplicitAny": false,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "forceConsistentCasingInFileNames": false,
+    "lib": [
+      "es2021"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
     "outDir": "dist",
+    "strict": true,
+    "target": "es2021"
   },
   "paths": {
       "@src/*": ["src/*"],

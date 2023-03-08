@@ -3,9 +3,9 @@ import Config from "./config";
 import { connectDB } from "./utils/db";
 
 // Link Routes
-import chat from "./routes/chat";
+import chat from "./routes/chat.js";
 
-(async () => connectDB())();
+//(async () => connectDB())();
 
 // Startup Express and Connect MongoDB
 const app = express();

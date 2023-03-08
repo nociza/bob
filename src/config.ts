@@ -1,15 +1,16 @@
 // server/config.ts
-import nodeConfig from "config";
 import "dotenv/config";
 interface Config {
   /** The port that the express server should bind to. */
   port: number;
   mongoDbUri: string;
+  bingCookie?: string;
 }
 
 const config: Config = {
-  port: nodeConfig.get<number>("port"),
-  mongoDbUri: nodeConfig.get<string>("db"),
+  port: process.env.PORT ? parseInt(process.env.PORT) : 6000,
+  mongoDbUri: process.env.MONGODB_URI || "",
+  bingCookie: process.env.BING_COOKIE,
 };
 
 // TODO: add option to require config options

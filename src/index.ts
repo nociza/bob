@@ -1,5 +1,5 @@
-import app from "./server";
-import Config from "./config";
+import app from "./server.js";
+import Config from "./config.js";
 
 const port = Config.port || 6000;
 const server = app.listen(port, () => {
