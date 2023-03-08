@@ -8,9 +8,9 @@ router.get("/", (req, res) => {
   res.send("Hello from Bob!");
 });
 
-router.post("/", async (req, res) => {
+router.post("/:message", async (req, res) => {
   try {
-    const { message } = req.body;
+    const message = req.params.message;
     const api = new BingChat({
       cookie: Config.bingCookie || "",
     });
