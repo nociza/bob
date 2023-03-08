@@ -1,0 +1,44 @@
+{
+  "name": "bob",
+  "version": "1.0.0",
+  "description": "my personal server ",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "start": "npm run build && NODE_ENV=production node ./dist/index.js",
+    "build": "rimraf ./dist && tsc",
+    "dev": "NODE_ENV=production npx ts-node-dev src/index.ts --respawn --transpile-only ./src/index.ts",
+    "database": "cd .docker && docker-compose up",
+    "database:close": "cd .docker && docker-compose down",
+    "lint": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nociza/bob.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nociza/bob/issues"
+  },
+  "homepage": "https://github.com/nociza/bob#readme",
+  "dependencies": {
+    "axios": "^1.2.1",
+    "config": "^3.3.9",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "mongoose": "^6.5.0",
+    "nodemon": "^2.0.20",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.7",
+    "@types/express": "^4.17.14",
+    "@types/node": "^18.11.7",
+    "debug": "^4.3.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.8.4"
+  }
+}
