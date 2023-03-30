@@ -9,7 +9,7 @@ router.post("/links-only/:prompt", async (req: any, res: any) => {
     const imageLinks = await generateImagesLinks(prompt);
     return res.status(200).send(imageLinks);
   } catch (err: any) {
-    console.error(err);
+    console.trace(err);
     return res.status(500).send(err.message);
   }
 });
