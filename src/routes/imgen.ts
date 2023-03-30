@@ -54,7 +54,7 @@ const getImages = async (session: AxiosInstance, prompt: string) => {
   });
 
   let redirectUrl;
-  toHTMLfile(response, "example.html");
+  // toHTMLfile(response, "example.html");
   if (response.status == 200) {
     redirectUrl = response.request.res.responseUrl.replace("&nfy=1", "");
   } else if (response.status !== 302) {
@@ -155,7 +155,7 @@ const saveImages = async (
   }
 };
 
-router.post("/:prompt", async (req: any, res: any) => {
+router.post("/links-only/:prompt", async (req: any, res: any) => {
   try {
     const { prompt } = req.params;
     const authCookie = Config.bingImageCookie;
@@ -169,6 +169,25 @@ router.post("/:prompt", async (req: any, res: any) => {
     const session = createSession(authCookie);
     const imageLinks = await getImages(session, prompt);
     return res.status(200).send(imageLinks);
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).send(err.message);
+  }
+});
+
+router.post("/:prompt", async (req: any, res: any) => {
+  try {
+    const { prompt } = req.params;
+    const authCookie = Config.bingImageCookie;
+    const outputDir = `${Config.tempDir}/${prompt}`;
+
+    if (!authCookie || !prompt) {
+      return res.status(500).send("Missing parameters");
+    }
+
+    // Create image generator session
+    const session = createSession(authCookie);
+    const imageLinks = await getImages(session, prompt);
     await saveImages(session, imageLinks, outputDir);
 
     // Read saved images from the output directory
