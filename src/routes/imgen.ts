@@ -42,35 +42,32 @@ const createSession = (authCookie: string) => {
 const getImages = async (session: AxiosInstance, prompt: string) => {
   console.log("Sending request...");
   const urlEncodedPrompt = querystring.escape(prompt);
-  let url = `${BING_URL}/images/create?q=${urlEncodedPrompt}&rt=4&FORM=GENCRE`;
+
+  const url = `${BING_URL}/images/create?q=${urlEncodedPrompt}&rt=3&FORM=GENCRE`; // force use rt=3
   console.log(url);
-  let response = await session.post(url, {
+  const response = await session.post(url, {
     maxRedirects: 0,
-    validateStatus: null,
+    validateStatus: function (status: number) {
+      return status >= 200 && status < 303;
+    },
+    timeout: 200000,
   });
-  console.log(response.headers);
-  if (response.status !== 302) {
-    url = `${BING_URL}/images/create?q=${urlEncodedPrompt}&rt=3&FORM=GENCRE`;
-    console.log(url);
-    response = await session.post(url, {
-      maxRedirects: 0,
-      validateStatus: null,
-      timeout: 200000,
-    });
-    console.log(response.headers);
-    toHTMLfile(response, "example.html");
-    if (response.status !== 302) {
-      console.error(`ERROR: the status is ${response.status} instead of 302`);
-      throw new Error("Redirect failed");
-    }
+
+  let redirectUrl;
+  toHTMLfile(response, "example.html");
+  if (response.status == 200) {
+    redirectUrl = response.request.res.responseUrl.replace("&nfy=1", "");
+  } else if (response.status !== 302) {
+    console.error(
+      `ERROR: the status is ${response.status} instead of 302 or 200`
+    );
+    throw new Error("Redirect failed");
   }
 
-  //console.log(response);
-  return [];
+  console.log("Redirected to", redirectUrl);
 
-  const redirectUrl = response.request.res.replace("&nfy=1", "");
   const requestId = redirectUrl.split("id=")[1];
-  await session.get(`${BING_URL}${redirectUrl}`);
+  await session.get(redirectUrl);
 
   const pollingUrl = `${BING_URL}/images/create/async/results/${requestId}?q=${urlEncodedPrompt}`;
 
