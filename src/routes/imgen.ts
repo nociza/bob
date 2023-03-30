@@ -1,8 +1,5 @@
 import { Router } from "express";
-import { getAllKeys, toHTMLfile } from "../utils/debug.js";
 import { generateImageFiles, generateImagesLinks } from "bimg";
-
-const BING_URL = "https://www.bing.com";
 
 const router = Router();
 
