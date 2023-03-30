@@ -1,10 +1,11 @@
-import axios from "axios";
+import axios, { AxiosInstance, AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
 import querystring from "querystring";
 import { Router } from "express";
 import { performance } from "perf_hooks";
 import Config from "../config.js";
+import { getAllKeys, toHTMLfile } from "../utils/debug.js";
 
 const BING_URL = "https://www.bing.com";
 
@@ -15,44 +16,59 @@ const createSession = (authCookie: string) => {
     headers: {
       accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-      "accept-language": "en-US,en;q=0.9",
+      "accept-encoding": "gzip, deflate, br",
+      "accept-language": "en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh;q=0.6",
       "cache-control": "max-age=0",
       "content-type": "application/x-www-form-urlencoded",
+      "Referrer-Policy": "origin-when-cross-origin",
       referrer: "https://www.bing.com/images/create/",
       origin: "https://www.bing.com",
       "user-agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.54",
+      cookie: `_U=${authCookie}`,
+      "sec-ch-ua": `"Microsoft Edge";v="111", "Not(A:Brand";v="8", "Chromium";v="111"`,
+      "sec-ch-ua-mobile": "?0",
+      "sec-fetch-dest": "document",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-user": "?1",
+      "upgrade-insecure-requests": "1",
     },
   });
-
-  session.defaults.headers.Cookie = `_U=${authCookie}`;
 
   return session;
 };
 
-const getImages = async (session: any, prompt: string) => {
+const getImages = async (session: AxiosInstance, prompt: string) => {
   console.log("Sending request...");
   const urlEncodedPrompt = querystring.escape(prompt);
   let url = `${BING_URL}/images/create?q=${urlEncodedPrompt}&rt=4&FORM=GENCRE`;
-  let response = await session
-    .post(url, { maxRedirects: 0 })
-    .catch((err: any) => {
-      if (err.responseCode !== 302) {
-        throw new Error("Redirect failed");
-      }
-      return err.response;
-    });
-
+  console.log(url);
+  let response = await session.post(url, {
+    maxRedirects: 0,
+    validateStatus: null,
+  });
+  console.log(response.headers);
   if (response.status !== 302) {
     url = `${BING_URL}/images/create?q=${urlEncodedPrompt}&rt=3&FORM=GENCRE`;
-    response = await session.post(url, { maxRedirects: 0, timeout: 200000 });
+    console.log(url);
+    response = await session.post(url, {
+      maxRedirects: 0,
+      validateStatus: null,
+      timeout: 200000,
+    });
+    console.log(response.headers);
+    toHTMLfile(response, "example.html");
     if (response.status !== 302) {
-      console.error(`ERROR: ${response.data}`);
+      console.error(`ERROR: the status is ${response.status} instead of 302`);
       throw new Error("Redirect failed");
     }
   }
 
-  const redirectUrl = response.headers.location.replace("&nfy=1", "");
+  //console.log(response);
+  return [];
+
+  const redirectUrl = response.request.res.replace("&nfy=1", "");
   const requestId = redirectUrl.split("id=")[1];
   await session.get(`${BING_URL}${redirectUrl}`);
 
@@ -104,7 +120,11 @@ const getImages = async (session: any, prompt: string) => {
   return normalImageLinks;
 };
 
-const saveImages = async (session: any, links: string[], outputDir: string) => {
+const saveImages = async (
+  session: AxiosInstance,
+  links: string[],
+  outputDir: string
+) => {
   console.log("\nDownloading images...");
   try {
     fs.mkdirSync(outputDir, { recursive: true });
@@ -126,22 +146,22 @@ const saveImages = async (session: any, links: string[], outputDir: string) => {
       });
 
       imageNum += 1;
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof axios.AxiosError) {
         throw new Error(
           "Inappropriate contents found in the generated images. Please try again or try another prompt."
         );
       } else {
-        throw err;
+        throw err.message;
       }
     }
   }
 };
 
-router.post("/generate/:prompt", async (req: any, res: any) => {
+router.post("/:prompt", async (req: any, res: any) => {
   try {
     const { prompt } = req.params;
-    const authCookie = Config.bingCookie;
+    const authCookie = Config.bingImageCookie;
     const outputDir = `${Config.tempDir}/${prompt}`;
 
     if (!authCookie || !prompt) {
@@ -151,6 +171,7 @@ router.post("/generate/:prompt", async (req: any, res: any) => {
     // Create image generator session
     const session = createSession(authCookie);
     const imageLinks = await getImages(session, prompt);
+    return res.status(200).send(imageLinks);
     await saveImages(session, imageLinks, outputDir);
 
     // Read saved images from the output directory
@@ -166,6 +187,7 @@ router.post("/generate/:prompt", async (req: any, res: any) => {
 
     return res.status(200).send(images);
   } catch (err: any) {
+    console.trace(err);
     return res.status(500).send(err.message);
   }
 });

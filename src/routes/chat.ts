@@ -12,7 +12,7 @@ router.post("/:message", async (req, res) => {
   try {
     const message = req.params.message;
     const api = new BingChat({
-      cookie: Config.bingCookie || "",
+      cookie: Config.bingChatCookie || "",
     });
     const response = await api.sendMessage(message);
     return res.status(200).send(response.text);

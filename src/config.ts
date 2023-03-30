@@ -4,14 +4,16 @@ interface Config {
   /** The port that the express server should bind to. */
   port: number;
   mongoDbUri: string;
-  bingCookie?: string;
+  bingChatCookie?: string;
+  bingImageCookie?: string;
   tempDir?: string;
 }
 
 const config: Config = {
   port: process.env.PORT ? parseInt(process.env.PORT) : 6000,
   mongoDbUri: process.env.MONGODB_URI || "",
-  bingCookie: process.env.BING_COOKIE,
+  bingChatCookie: process.env.BING_CHAT_COOKIE,
+  bingImageCookie: process.env.BING_IMAGE_COOKIE,
   tempDir: process.env.TEMP_DIR || "/tmp",
 };
 

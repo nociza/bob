@@ -4,6 +4,7 @@ import { connectDB } from "./utils/db";
 
 // Link Routes
 import chat from "./routes/chat.js";
+import imgen from "./routes/imgen.js";
 
 //(async () => connectDB())();
 
@@ -16,5 +17,6 @@ app.get("/", (req, res) => {
 
 // Use Routes
 app.use("/chat", chat);
+app.use("/imgen", imgen);
 
 export default app;
